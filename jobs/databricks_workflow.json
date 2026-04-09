@@ -1,0 +1,89 @@
+{
+  "name": "cloud-stock-analytics-workflow",
+  "max_concurrent_runs": 1,
+  "schedule": {
+    "quartz_cron_expression": "0 0 7 * * ?",
+    "timezone_id": "Asia/Bangkok",
+    "pause_status": "UNPAUSED"
+  },
+  "tasks": [
+    {
+      "task_key": "ingestion_task",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Repos/<your-user>/cloud2/notebooks/01_ingestion_databricks",
+        "base_parameters": {
+          "project_root": "/Workspace/Repos/<your-user>/cloud2",
+          "config_path": "/Workspace/Repos/<your-user>/cloud2/configs/settings.yaml",
+          "base_path": "/dbfs/FileStore/cloud_stock_analytics"
+        }
+      },
+      "new_cluster": {
+        "spark_version": "14.3.x-scala2.12",
+        "node_type_id": "Standard_DS3_v2",
+        "num_workers": 1
+      }
+    },
+    {
+      "task_key": "etl_task",
+      "depends_on": [
+        {
+          "task_key": "ingestion_task"
+        }
+      ],
+      "notebook_task": {
+        "notebook_path": "/Workspace/Repos/<your-user>/cloud2/notebooks/02_etl_databricks",
+        "base_parameters": {
+          "project_root": "/Workspace/Repos/<your-user>/cloud2",
+          "config_path": "/Workspace/Repos/<your-user>/cloud2/configs/settings.yaml",
+          "base_path": "/dbfs/FileStore/cloud_stock_analytics"
+        }
+      },
+      "job_cluster_key": "shared_cluster"
+    },
+    {
+      "task_key": "train_task",
+      "depends_on": [
+        {
+          "task_key": "etl_task"
+        }
+      ],
+      "notebook_task": {
+        "notebook_path": "/Workspace/Repos/<your-user>/cloud2/notebooks/03_train_databricks",
+        "base_parameters": {
+          "project_root": "/Workspace/Repos/<your-user>/cloud2",
+          "config_path": "/Workspace/Repos/<your-user>/cloud2/configs/settings.yaml",
+          "base_path": "/dbfs/FileStore/cloud_stock_analytics"
+        }
+      },
+      "job_cluster_key": "shared_cluster"
+    },
+    {
+      "task_key": "dashboard_task",
+      "depends_on": [
+        {
+          "task_key": "train_task"
+        }
+      ],
+      "notebook_task": {
+        "notebook_path": "/Workspace/Repos/<your-user>/cloud2/notebooks/04_dashboard_databricks",
+        "base_parameters": {
+          "project_root": "/Workspace/Repos/<your-user>/cloud2",
+          "config_path": "/Workspace/Repos/<your-user>/cloud2/configs/settings.yaml",
+          "base_path": "/dbfs/FileStore/cloud_stock_analytics"
+        }
+      },
+      "job_cluster_key": "shared_cluster"
+    }
+  ],
+  "job_clusters": [
+    {
+      "job_cluster_key": "shared_cluster",
+      "new_cluster": {
+        "spark_version": "14.3.x-scala2.12",
+        "node_type_id": "Standard_DS3_v2",
+        "num_workers": 1
+      }
+    }
+  ]
+}
+

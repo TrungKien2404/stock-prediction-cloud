@@ -1,0 +1,60 @@
+project:
+  name: "cloud_stock_analytics"
+  environment: "dev"
+
+stocks:
+  tickers:
+    - "AAPL"
+    - "TSLA"
+    - "MSFT"
+  start_date: "2021-01-01"
+  end_date: null
+  interval: "1d"
+
+storage:
+  base_path: "."
+  raw_parquet_path: "data/raw/stock_prices"
+  processed_parquet_path: "data/processed/stock_features"
+  delta_feature_path: "data/delta/stock_features"
+  delta_prediction_path: "data/delta/stock_predictions"
+  artifacts_root: "data/artifacts"
+  model_path: "data/artifacts/models/best_model"
+  metrics_json_path: "data/artifacts/metrics/model_metrics.json"
+  metrics_parquet_path: "data/artifacts/metrics/model_metrics.parquet"
+  predictions_export_path: "data/artifacts/predictions/predictions.parquet"
+  dashboard_html_path: "data/artifacts/dashboard/stock_dashboard.html"
+  ingestion_manifest_path: "data/artifacts/ingestion/manifest.json"
+  delta_database: "stock_analytics"
+  delta_feature_table: "stock_features"
+  delta_prediction_table: "stock_predictions"
+
+features:
+  ma_windows:
+    - 10
+    - 20
+  lag_days:
+    - 1
+    - 2
+    - 3
+  rsi_window: 14
+
+model:
+  label_col: "target_close"
+  train_ratio: 0.8
+  random_seed: 42
+  random_forest:
+    num_trees: 150
+    max_depth: 8
+  gbt:
+    max_iter: 120
+    max_depth: 5
+
+dashboard:
+  host: "0.0.0.0"
+  port: 8050
+  lookback_days: 180
+
+api:
+  host: "0.0.0.0"
+  port: 8000
+
